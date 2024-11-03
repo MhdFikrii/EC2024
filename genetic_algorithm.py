@@ -33,7 +33,7 @@ class HomePage extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Live Video Feed Placeholder
+          // Placeholder for Live Video Feed
           Expanded(
             child: Container(
               color: Colors.blue[100],
@@ -45,48 +45,58 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ),
-          // Control Buttons
+          // Control Buttons Section
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  onPressed: () {
+                _buildActionButton(
+                  context,
+                  'Feed Now',
+                  Colors.green,
+                  () {
                     // Implement feed functionality here
                   },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.green,
-                  ),
-                  child: const Text('Feed Now'),
                 ),
-                ElevatedButton(
-                  onPressed: () {
+                _buildActionButton(
+                  context,
+                  'Clean Now',
+                  Colors.blue,
+                  () {
                     // Implement clean functionality here
                   },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.blue,
-                  ),
-                  child: const Text('Clean Now'),
                 ),
-                ElevatedButton(
-                  onPressed: () {
+                _buildActionButton(
+                  context,
+                  'Genetic Algorithm',
+                  Colors.orange,
+                  () {
                     // Navigate to Genetic Algorithm Page
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const GeneticAlgorithmPage()),
                     );
                   },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.orange,
-                  ),
-                  child: const Text('Genetic Algorithm'),
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // Function to build action buttons
+  Widget _buildActionButton(BuildContext context, String label, Color color, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        primary: color,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        textStyle: const TextStyle(fontSize: 16),
+      ),
+      child: Text(label),
     );
   }
 }
