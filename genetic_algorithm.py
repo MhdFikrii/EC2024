@@ -1,99 +1,52 @@
-import streamlit as st
 import random
+import streamlit as st
 
-# Set up Streamlit page configuration
-st.set_page_config(page_title="Genetic Algorithm")
-st.header("Genetic Algorithm", divider="gray")
+def genetic_algorithm(target, mutation_rate=0.1):
+    # Convert the target string into a list of characters
+    target_chars = list(target)
+    # Initialize population as a random string of the same length as the target
+    population = [''.join(random.choice(target_chars) for _ in range(len(target_chars)))]
+    generation = 0
+    
+    # Calculate fitness: number of characters that are not in the target position
+    def calculate_fitness(population):
+        return sum(1 for i, j in zip(target_chars, population[0]) if i != j)
 
-# Constants
-POP_SIZE = 500  # Number of Chromosomes in our list.
-TARGET = 'fikri'  # Our goal.
-GENES = ' abcdefghijklmnopqrstuvwxyz'  # Options for population creation
+    fitness = calculate_fitness(population)
 
-# Function to initialize population
-def initialize_pop(TARGET):
-    population = []
-    tar_len = len(TARGET)
+    while fitness != 0:
+        new_population = []
+        for _ in range(len(population)):
+            # Create a new individual based on mutation
+            if random.random() < mutation_rate:
+                gene = ''.join(random.choice(target_chars) for _ in range(len(target_chars)))
+            else:
+                gene = population[0]  # No mutation, keep the same individual
+            new_population.append(gene)
 
-    for _ in range(POP_SIZE):
-        temp = [random.choice(GENES) for _ in range(tar_len)]
-        population.append(temp)
+        population = new_population
+        fitness = calculate_fitness(population)
+        generation += 1
 
-    return population
+        # Show the current state of evolution
+        yield {
+            "string": population[0],
+            "generation": generation,
+            "fitness": fitness
+        }
 
-# Fitness calculation
-def fitness_cal(TARGET, chromo_from_pop):
-    difference = sum(1 for tar_char, chromo_char in zip(TARGET, chromo_from_pop) if tar_char != chromo_char)
-    return [chromo_from_pop, difference]
+    return population[0]
 
-# Selection function
-def selection(population, TARGET):
-    sorted_chromo_pop = sorted(population, key=lambda x: x[1])
-    return sorted_chromo_pop[:int(0.5 * POP_SIZE)]
+# Streamlit App Layout
+st.title("Genetic Algorithm")
 
-# Crossover function
-def crossover(selected_chromo, CHROMO_LEN, population):
-    offspring_cross = []
-    for _ in range(int(POP_SIZE)):
-        parent1 = random.choice(selected_chromo)
-        parent2 = random.choice(population[:int(POP_SIZE * 0.5)])
-        p1 = parent1[0]
-        p2 = parent2[0]
-        crossover_point = random.randint(1, CHROMO_LEN - 1)
-        child = p1[:crossover_point] + p2[crossover_point:]
-        offspring_cross.append(child)
-    return offspring_cross
-
-# Mutation function
-def mutate(offspring, MUT_RATE):
-    mutated_offspring = []
-    for arr in offspring:
-        for i in range(len(arr)):
-            if random.random() < MUT_RATE:
-                arr[i] = random.choice(GENES)
-        mutated_offspring.append(arr)
-    return mutated_offspring
-
-# Replacement function
-def replace(new_gen, population):
-    for i in range(len(population)):
-        if population[i][1] > new_gen[i][1]:
-            population[i][0] = new_gen[i][0]
-            population[i][1] = new_gen[i][1]
-    return population
-
-# Main function
-def main(POP_SIZE, MUT_RATE, TARGET, GENES):
-    initial_population = initialize_pop(TARGET)
-    found = False
-    population = []
-    generation = 1
-
-    # Calculate the fitness for the initial population
-    for chromo in initial_population:
-        population.append(fitness_cal(TARGET, chromo))
-
-    # Loop until the target is found
-    while not found:
-        selected = selection(population, TARGET)
-        population = sorted(population, key=lambda x: x[1])
-        crossovered = crossover(selected, len(TARGET), population)
-        mutated = mutate(crossovered, MUT_RATE)
-
-        new_gen = [fitness_cal(TARGET, child) for child in mutated]
-        population = replace(new_gen, population)
-
-        if population[0][1] == 0:
-            st.write('Target found')
-            st.write(f'String: {population[0][0]} | Generation: {generation} | Fitness: {population[0][1]}')
-            found = True
-        else:
-            st.write(f'String: {population[0][0]} | Generation: {generation} | Fitness: {population[0][1]}')
-            generation += 1
-
-# Streamlit input for mutation rate
+# Input fields for name and mutation rate
+name = st.text_input("Enter your name", "")
 if 'mutation_rate' not in st.session_state:
-    st.session_state.mutation_rate = 0.2  # Default mutation rate
+    st.session_state.mutation_rate = 0.1  # Default mutation rate
+
+# Display the current mutation rate
+st.write(f"Current Mutation Rate: {st.session_state.mutation_rate:.2f}")
 
 # Input field for custom mutation rate
 custom_mutation_rate = st.number_input("Enter your mutation rate (0.0 - 1.0)", 
@@ -105,13 +58,26 @@ custom_mutation_rate = st.number_input("Enter your mutation rate (0.0 - 1.0)",
 st.session_state.mutation_rate = custom_mutation_rate
 
 # Button to start the genetic algorithm
-if st.button("Run Genetic Algorithm"):
-    main(POP_SIZE, st.session_state.mutation_rate, TARGET, GENES)
+if st.button("Calculate"):
+    # Run the genetic algorithm with the given name as target
+    target = name
+    st.write(f"Target string: {target}")
+
+    # Display evolution of the genetic algorithm
+    results = []
+    for step in genetic_algorithm(target, mutation_rate=st.session_state.mutation_rate):
+        results.append(step)
+        st.write(f"String: {step['string']} | Generation: {step['generation']} | Fitness: {step['fitness']}")
+        
+        # Stop if the target is found
+        if step["fitness"] == 0:
+            st.success("Target found!")
+            break
 
 # To run the app, execute this command in the terminal
 # streamlit run app.py
 
 # Git commands for version control
 # git add .
-# git commit -m "Combine genetic algorithm logic with user input for mutation rate"
+# git commit -m "Add genetic algorithm and Streamlit interface with custom mutation rate input"
 # git push origin main
