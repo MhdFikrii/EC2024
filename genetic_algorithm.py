@@ -42,7 +42,18 @@ st.title("Genetic Algorithm")
 
 # Input fields for name and mutation rate
 name = st.text_input("Enter your name", "")
-mutation_rate = st.slider("Enter your mutation rate", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+if 'mutation_rate' not in st.session_state:
+    st.session_state.mutation_rate = 0.1  # Default mutation rate
+
+# Display the current mutation rate
+st.write(f"Current Mutation Rate: {st.session_state.mutation_rate:.2f}")
+
+# Plus and Minus buttons to adjust the mutation rate
+col1, col2 = st.columns(2)
+if col1.button("+ Increase Mutation Rate"):
+    st.session_state.mutation_rate = min(st.session_state.mutation_rate + 0.01, 1.0)  # Cap at 1.0
+if col2.button("- Decrease Mutation Rate"):
+    st.session_state.mutation_rate = max(st.session_state.mutation_rate - 0.01, 0.0)  # Cap at 0.0
 
 # Button to start the genetic algorithm
 if st.button("Calculate"):
@@ -52,7 +63,7 @@ if st.button("Calculate"):
 
     # Display evolution of the genetic algorithm
     results = []
-    for step in genetic_algorithm(target, mutation_rate=mutation_rate):
+    for step in genetic_algorithm(target, mutation_rate=st.session_state.mutation_rate):
         results.append(step)
         st.write(f"String: {step['string']} | Generation: {step['generation']} | Fitness: {step['fitness']}")
         
