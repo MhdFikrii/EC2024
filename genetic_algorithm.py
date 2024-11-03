@@ -45,9 +45,6 @@ name = st.text_input("Enter your name", "")
 if 'mutation_rate' not in st.session_state:
     st.session_state.mutation_rate = 0.1  # Default mutation rate
 
-# Display the current mutation rate
-st.write(f"Current Mutation Rate: {st.session_state.mutation_rate:.2f}")
-
 # Input field for custom mutation rate
 custom_mutation_rate = st.number_input("Enter your mutation rate (0.0 - 1.0)", 
                                         value=st.session_state.mutation_rate, 
