@@ -1,128 +1,83 @@
-import 'package:flutter/material.dart';
-import 'dart:math';
+import random
+import streamlit as st
 
-class GeneticAlgorithmPage extends StatefulWidget {
-  const GeneticAlgorithmPage({super.key});
+def genetic_algorithm(target, mutation_rate=0.1):
+    # Convert the target string into a list of characters
+    target_chars = list(target)
+    # Initialize population as a random string of the same length as the target
+    population = [''.join(random.choice(target_chars) for _ in range(len(target_chars)))]
+    generation = 0
+    
+    # Calculate fitness: number of characters that are not in the target position
+    def calculate_fitness(population):
+        return sum(1 for i, j in zip(target_chars, population[0]) if i != j)
 
-  @override
-  _GeneticAlgorithmPageState createState() => _GeneticAlgorithmPageState();
-}
+    fitness = calculate_fitness(population)
 
-class _GeneticAlgorithmPageState extends State<GeneticAlgorithmPage> {
-  final int popSize = 500;
-  final double mutRate = 0.2;
-  final String target = 'fikri';
-  final String genes = ' abcdefghijklmnopqrstuvwxyz';
+    while fitness != 0:
+        new_population = []
+        for _ in range(len(population)):
+            # Create a new individual based on mutation
+            if random.random() < mutation_rate:
+                gene = ''.join(random.choice(target_chars) for _ in range(len(target_chars)))
+            else:
+                gene = population[0]  # No mutation, keep the same individual
+            new_population.append(gene)
 
-  List<List<dynamic>> population = [];
-  int generation = 1;
-  bool found = false;
+        population = new_population
+        fitness = calculate_fitness(population)
+        generation += 1
 
-  void initializePop() {
-    population.clear();
-    for (int i = 0; i < popSize; i++) {
-      List<String> chromosome = List.generate(target.length,
-          (index) => genes[Random().nextInt(genes.length)]);
-      population.add([chromosome, 0]);
-    }
-  }
-
-  int fitnessCal(List<dynamic> chromoFromPop) {
-    int difference = 0;
-    for (int i = 0; i < target.length; i++) {
-      if (target[i] != chromoFromPop[0][i]) {
-        difference++;
-      }
-    }
-    return difference;
-  }
-
-  List<List<dynamic>> selection() {
-    population.sort((a, b) => a[1].compareTo(b[1]));
-    return population.sublist(0, (0.5 * popSize).toInt());
-  }
-
-  List<List<dynamic>> crossover(List<List<dynamic>> selectedChromos) {
-    List<List<dynamic>> offspring = [];
-    for (int i = 0; i < popSize; i++) {
-      var parent1 = selectedChromos[Random().nextInt(selectedChromos.length)][0];
-      var parent2 = selectedChromos[Random().nextInt(selectedChromos.length)][0];
-      int crossoverPoint = Random().nextInt(target.length);
-      List<String> child = List.from(parent1.sublist(0, crossoverPoint)) +
-          parent2.sublist(crossoverPoint);
-      offspring.add([child, 0]);
-    }
-    return offspring;
-  }
-
-  List<List<dynamic>> mutate(List<List<dynamic>> offspring) {
-    for (var arr in offspring) {
-      for (int i = 0; i < arr[0].length; i++) {
-        if (Random().nextDouble() < mutRate) {
-          arr[0][i] = genes[Random().nextInt(genes.length)];
+        # Show the current state of evolution
+        yield {
+            "string": population[0],
+            "generation": generation,
+            "fitness": fitness
         }
-      }
-    }
-    return offspring;
-  }
 
-  void replace(List<List<dynamic>> newGen) {
-    for (int i = 0; i < population.length; i++) {
-      if (population[i][1] > newGen[i][1]) {
-        population[i][0] = newGen[i][0];
-        population[i][1] = newGen[i][1];
-      }
-    }
-  }
+    return population[0]
 
-  void runGeneticAlgorithm() {
-    initializePop();
-    while (!found) {
-      for (var chromo in population) {
-        chromo[1] = fitnessCal(chromo);
-      }
+# Streamlit App Layout
+st.title("Genetic Algorithm")
 
-      if (population[0][1] == 0) {
-        setState(() {
-          found = true;
-        });
-        break;
-      }
+# Input fields for name and mutation rate
+name = st.text_input("Enter your name", "")
+if 'mutation_rate' not in st.session_state:
+    st.session_state.mutation_rate = 0.1  # Default mutation rate
 
-      var selected = selection();
-      var offspring = crossover(selected);
-      var mutated = mutate(offspring);
-      replace(mutated);
+# Display the current mutation rate
+st.write(f"Current Mutation Rate: {st.session_state.mutation_rate:.2f}")
 
-      setState(() {
-        generation++;
-      });
-    }
-  }
+# Input field for custom mutation rate
+custom_mutation_rate = st.number_input("Enter your mutation rate (0.0 - 1.0)", 
+                                        value=st.session_state.mutation_rate, 
+                                        min_value=0.0, max_value=1.0, 
+                                        step=0.01)
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Genetic Algorithm'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (found)
-              Text(
-                'Target found: ${population[0][0].join()} in Generation: $generation',
-                style: const TextStyle(fontSize: 18),
-              )
-            else
-              ElevatedButton(
-                onPressed: runGeneticAlgorithm,
-                child: const Text('Start Genetic Algorithm'),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+# Update session state with the custom mutation rate
+st.session_state.mutation_rate = custom_mutation_rate
+
+# Button to start the genetic algorithm
+if st.button("Calculate"):
+    # Run the genetic algorithm with the given name as target
+    target = name
+    st.write(f"Target string: {target}")
+
+    # Display evolution of the genetic algorithm
+    results = []
+    for step in genetic_algorithm(target, mutation_rate=st.session_state.mutation_rate):
+        results.append(step)
+        st.write(f"String: {step['string']} | Generation: {step['generation']} | Fitness: {step['fitness']}")
+        
+        # Stop if the target is found
+        if step["fitness"] == 0:
+            st.success("Target found!")
+            break
+
+# To run the app, execute this command in the terminal
+# streamlit run app.py
+
+# Git commands for version control
+# git add .
+# git commit -m "Add genetic algorithm and Streamlit interface with custom mutation rate input"
+# git push origin main
