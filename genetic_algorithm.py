@@ -1,83 +1,92 @@
-import random
-import streamlit as st
+import 'package:flutter/material.dart';
+import 'genetic_algorithm_page.dart'; // Import the Genetic Algorithm Page
 
-def genetic_algorithm(target, mutation_rate=0.1):
-    # Convert the target string into a list of characters
-    target_chars = list(target)
-    # Initialize population as a random string of the same length as the target
-    population = [''.join(random.choice(target_chars) for _ in range(len(target_chars)))]
-    generation = 0
-    
-    # Calculate fitness: number of characters that are not in the target position
-    def calculate_fitness(population):
-        return sum(1 for i, j in zip(target_chars, population[0]) if i != j)
+void main() {
+  runApp(const MyApp());
+}
 
-    fitness = calculate_fitness(population)
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-    while fitness != 0:
-        new_population = []
-        for _ in range(len(population)):
-            # Create a new individual based on mutation
-            if random.random() < mutation_rate:
-                gene = ''.join(random.choice(target_chars) for _ in range(len(target_chars)))
-            else:
-                gene = population[0]  # No mutation, keep the same individual
-            new_population.append(gene)
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Aquarium Monitor',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
+      home: const HomePage(),
+    );
+  }
+}
 
-        population = new_population
-        fitness = calculate_fitness(population)
-        generation += 1
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
-        # Show the current state of evolution
-        yield {
-            "string": population[0],
-            "generation": generation,
-            "fitness": fitness
-        }
-
-    return population[0]
-
-# Streamlit App Layout
-st.title("Genetic Algorithm")
-
-# Input fields for name and mutation rate
-name = st.text_input("Enter your name", "")
-if 'mutation_rate' not in st.session_state:
-    st.session_state.mutation_rate = 0.1  # Default mutation rate
-
-# Display the current mutation rate
-st.write(f"Current Mutation Rate: {st.session_state.mutation_rate:.2f}")
-
-# Input field for custom mutation rate
-custom_mutation_rate = st.number_input("Enter your mutation rate (0.0 - 1.0)", 
-                                        value=st.session_state.mutation_rate, 
-                                        min_value=0.0, max_value=1.0, 
-                                        step=0.01)
-
-# Update session state with the custom mutation rate
-st.session_state.mutation_rate = custom_mutation_rate
-
-# Button to start the genetic algorithm
-if st.button("Calculate"):
-    # Run the genetic algorithm with the given name as target
-    target = name
-    st.write(f"Target string: {target}")
-
-    # Display evolution of the genetic algorithm
-    results = []
-    for step in genetic_algorithm(target, mutation_rate=st.session_state.mutation_rate):
-        results.append(step)
-        st.write(f"String: {step['string']} | Generation: {step['generation']} | Fitness: {step['fitness']}")
-        
-        # Stop if the target is found
-        if step["fitness"] == 0:
-            st.success("Target found!")
-            break
-
-# To run the app, execute this command in the terminal
-# streamlit run app.py
-
-# Git commands for version control
-# git add .
-# git commit -m "Add genetic algorithm and Streamlit interface with custom mutation rate input"
-# git push origin main
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Aquarium Monitor'),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Live Video Feed Placeholder
+          Expanded(
+            child: Container(
+              color: Colors.blue[100],
+              child: const Center(
+                child: Text(
+                  'Live Video Feed',
+                  style: TextStyle(fontSize: 20, color: Colors.black54),
+                ),
+              ),
+            ),
+          ),
+          // Control Buttons
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // Implement feed functionality here
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green,
+                  ),
+                  child: const Text('Feed Now'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // Implement clean functionality here
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                  ),
+                  child: const Text('Clean Now'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // Navigate to Genetic Algorithm Page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const GeneticAlgorithmPage()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.orange,
+                  ),
+                  child: const Text('Genetic Algorithm'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
