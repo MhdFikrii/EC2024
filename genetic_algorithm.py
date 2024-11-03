@@ -48,12 +48,14 @@ if 'mutation_rate' not in st.session_state:
 # Display the current mutation rate
 st.write(f"Current Mutation Rate: {st.session_state.mutation_rate:.2f}")
 
-# Plus and Minus buttons to adjust the mutation rate
-col1, col2 = st.columns(2)
-if col1.button("+ Increase Mutation Rate"):
-    st.session_state.mutation_rate = min(st.session_state.mutation_rate + 0.01, 1.0)  # Cap at 1.0
-if col2.button("- Decrease Mutation Rate"):
-    st.session_state.mutation_rate = max(st.session_state.mutation_rate - 0.01, 0.0)  # Cap at 0.0
+# Input field for custom mutation rate
+custom_mutation_rate = st.number_input("Enter your mutation rate (0.0 - 1.0)", 
+                                        value=st.session_state.mutation_rate, 
+                                        min_value=0.0, max_value=1.0, 
+                                        step=0.01)
+
+# Update session state with the custom mutation rate
+st.session_state.mutation_rate = custom_mutation_rate
 
 # Button to start the genetic algorithm
 if st.button("Calculate"):
@@ -77,5 +79,5 @@ if st.button("Calculate"):
 
 # Git commands for version control
 # git add .
-# git commit -m "Add genetic algorithm and Streamlit interface"
+# git commit -m "Add genetic algorithm and Streamlit interface with custom mutation rate input"
 # git push origin main
